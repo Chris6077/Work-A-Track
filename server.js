@@ -8,14 +8,13 @@ app.use(bodyparser.urlencoded({
 var cors = require('cors');
 app.use(cors());
 var bcrypt = require('bcrypt');
-var saltRounds = config.SR;
+var saltRounds = 10;
 app.use(express.static('public'));
 var mongoose = require('mongoose');
-var config = require('./config');
 var User = require('./models/user');
 var Workout = require('./models/workout');
 app.options('*', cors()) // include before other routes
-mongoose.connect(config.db.host);
+mongoose.connect(process.env.CONN);
 
 app.get('/', function(request, response) {
   response.sendFile(__dirname + '/views/index.html');
@@ -92,13 +91,13 @@ function getWO(obj, res){
 }
 
 app.post('/user/login', function(req,res){
-  var usr = req.body;
-  if(!usr.username) res.status(406).json({'error': 'Required fields missing'});
+  var lusr = req.body;
+  if(!lusr.username) res.status(406).json({'error': 'Required fields missing'});
   else{
-    User.findOne({username: usr.username.toLowerCase()}, function(err, usr){
+    User.findOne({username: lusr.username.toLowerCase()}, function(err, usr){
       if(usr){
         if(usr.password){
-          bcrypt.compare(usr.password, usr.password).then(function(result) {
+          bcrypt.compare(lusr.password, usr.password).then(function(result) {
             if(result) res.status(200).json({'message': 'Logged in'});
             else res.status(406).json({'error': 'Invalid username or password'})
           });
